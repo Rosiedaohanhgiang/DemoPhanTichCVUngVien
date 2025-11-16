@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: AI Đối Sánh Ứng Viên - Build Talents</title>
+    
+    <!-- Tải Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tải Google Font 'Oswald' & 'Inter' -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Cấu hình Tailwind tùy chỉnh (Giữ nguyên DNA thương hiệu) -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'oswald': ['Oswald', 'sans-serif'],
+                        'inter': ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        'bt-orange': '#FF9800',
+                        'bt-green': '#009688',
+                        'bt-blue-light': '#5C6BC0',
+                        'bt-blue-dark': '#1a237e',
+                        'bt-red': '#EF5350'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Oswald', 'sans-serif';
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .font-inter {
+            font-family: 'Inter', 'sans-serif';
+        }
+        /* ... scrollbar styles ... */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #5C6BC0; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #1a237e; }
+
+        /* Thẻ Kết Quả */
+        .result-card {
+            background-color: white;
+            border-radius: 0.75rem; /* 12px */
+            padding: 1.5rem; /* 24px */
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-left-width: 6px;
+            transition: all 0.3s ease;
+        }
+        .result-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Loading Spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #5C6BC0;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-bt-blue-dark font-oswald">
+
+    <!-- Toàn bộ ứng dụng -->
+    <div class="min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header class="bg-bt-blue-dark text-white shadow-2xl">
+            <div class="container mx-auto px-6 py-12 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold tracking-wider uppercase">
+                    DEMO AI ĐỐI SÁNH ỨNG VIÊN
+                </h1>
+                <p class="mt-4 text-xl md:text-2xl font-light text-bt-orange tracking-wide max-w-4xl mx-auto">
+                    Mô phỏng cách AI "đọc" JD và CVs để xếp hạng ứng viên "như thật"
+                </p>
+            </div>
+        </header>
+
+        <!-- Phần thân chính: Demo 3 cột -->
+        <main id="demo" class="container mx-auto px-4 md:px-6 py-12 flex-grow">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- CỘT 1: BẢN MÔ TẢ CÔNG VIỆC (JD) -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg h-full">
+                    <h2 class="text-3xl font-bold uppercase text-bt-blue-dark mb-4">1. Mô Tả Công Việc (JD)</h2>
+                    <p class="font-inter text-gray-700 font-light mb-4">Dán JD của bạn vào đây. AI sẽ tự động "học" các kỹ năng và đặc điểm tiềm năng cần tìm.</p>
+                    
+                    <textarea id="jd-input" class="w-full h-96 p-4 font-inter text-sm text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bt-blue-light focus:outline-none" spellcheck="false">
+Vị trí: Quản Lý Marketing Kỹ Thuật Số (Digital Marketing Manager)
+Mô tả:
+Chúng tôi đang tìm kiếm một Trưởng phòng Marketing Kỹ thuật Số (Digital Marketing Manager) để dẫn dắt đội ngũ.
+Yêu cầu:
+- 5+ năm kinh nghiệm về Phân tích Dữ liệu (data analysis).
+- Thành thạo SEO, SEM, và Google Analytics.
+- Có kinh nghiệm quản lý đội nhóm, chủ động trong công việc.
+- Sáng tạo và tối ưu hóa các chiến dịch marketing.
+- Kỹ năng quản lý dự án tốt.
+                    </textarea>
+                </div>
+
+                <!-- CỘT 2: HỒ SƠ ỨNG VIÊN (CVs) -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg h-full">
+                    <h2 class="text-3xl font-bold uppercase text-bt-blue-dark mb-4">2. Hồ Sơ Ứng Viên (CVs)</h2>
+                    <p class="font-inter text-gray-700 font-light mb-4">Dán nhiều CV vào đây (ngăn cách bởi "---"). AI sẽ đọc và phân tích tất cả.</p>
+                    
+                    <textarea id="cv-input" class="w-full h-96 p-4 font-inter text-sm text-gray-800 border border-gray-300 rounded-lg focus:ring-2 focus:ring-bt-blue-light focus:outline-none" spellcheck="false">
+Họ Tên: Nguyễn Văn A
+Kinh nghiệm: 6 năm làm Google Analytics và SEO. Từng quản lý team 3 người. Đã tối ưu hóa chi phí quảng cáo giảm 30%.
+---
+Họ Tên: Trần Thị B
+Kinh nghiệm: 3 năm làm SEO. Chưa có kinh nghiệm quản lý.
+---
+Họ Tên: Lê Văn C
+Kinh nghiệm: 5 năm làm Phân tích Dữ liệu cho mảng tài chính. Đã chủ động xây dựng nhiều báo cáo. Muốn chuyển sang mảng marketing.
+---
+Họ Tên: Phạm Thị D
+Kinh nghiệm: 8 năm quản lý dự án phần mềm. Không rành về SEO hay marketing.
+                    </textarea>
+                </div>
+
+                <!-- CỘT 3: KẾT QUẢ AI -->
+                <div class="bg-bt-blue-dark p-6 rounded-2xl shadow-lg h-full">
+                    <h2 class="text-3xl font-bold uppercase text-white mb-4">3. Kết Quả Phân Tích AI</h2>
+                    <p class="font-inter text-bt-blue-light font-light mb-4">Nhấn nút để AI quét JD và toàn bộ CV, sau đó xếp hạng ứng viên theo thứ tự ưu tiên.</p>
+
+                    <button id="analyze-btn" class="w-full mb-6 bg-bt-orange text-white py-4 px-8 text-xl font-semibold rounded-lg shadow-lg hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.25 18.75l.813 2.846.813-2.846a4.5 4.5 0 0 0 3.09-3.09L25.75 12l-2.846-.813a4.5 4.5 0 0 0-3.09-3.09L19.75 5.25l-.813 2.846a4.5 4.5 0 0 0-3.09 3.09L13.25 12l2.846.813a4.5 4.5 0 0 0 3.09 3.09Z" /></svg>
+                        Phân Tích Bằng AI
+                    </button>
+
+                    <!-- Vùng kết quả -->
+                    <div id="loading-spinner" class="hidden flex-col items-center justify-center py-10">
+                        <div class="loader"></div>
+                        <p class="text-bt-blue-light font-inter mt-4">AI đang "đọc" 1.000 hồ sơ... Vui lòng chờ...</p>
+                    </div>
+
+                    <div id="results-output" class="h-[34rem] overflow-y-auto">
+                        <!-- Kết quả AI sẽ xuất hiện ở đây -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phần Câu Lệnh AI (từ app trước) -->
+            <section class="container mx-auto px-4 md:px-6 py-12 mt-12">
+                <div class="max-w-4xl mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-lg border-t-8 border-bt-orange">
+                    <h2 class="text-3xl md:text-4xl font-bold text-center uppercase text-bt-blue-dark mb-10">
+                        Câu Lệnh (Prompts) AI Đã Tạo Ra Bảng Này
+                    </h2>
+                    
+                    <div class="space-y-6 font-inter">
+                        <div class="p-6 rounded-lg border-l-4 border-bt-blue-light bg-blue-50">
+                            <h3 class="font-oswald text-xl font-bold uppercase text-bt-blue-light mb-2">CẤP 1: THU THẬP DỮ LIỆU</h3>
+                            <p class="text-lg font-medium text-bt-blue-dark bg-white p-4 rounded shadow-inner">
+                                "Quét [Bản Mô Tả Công Việc]. Chấm điểm [Danh sách CV] theo 2 trục (thang 1-100): (1) <span class="font-bold">'Độ Khớp Kỹ Năng'</span> so với JD, và (2) <span class="font-bold">'Độ Khớp Tiềm Năng'</span> so với hồ sơ 5 'Ngôi Sao' Marketing hiện tại của công ty."
+                            </p>
+                        </div>
+                        
+                        <div class="p-6 rounded-lg border-l-4 border-bt-green bg-green-50">
+                            <h3 class="font-oswald text-xl font-bold uppercase text-bt-green mb-2">CẤP 2: TÌM MÔ HÌNH ẨN</h3>
+                            <p class="text-lg font-medium text-bt-blue-dark bg-white p-4 rounded shadow-inner">
+                                "Xếp hạng danh sách ứng viên theo điểm tổng hợp (70% Kỹ Năng + 30% Tiềm Năng). Xác định 3 nhóm: <span class="font-bold text-bt-green">'Ngôi Sao' (Skill > 80, Tiềm năng > 80)</span>, <span class="font-bold text-bt-orange">'Kim Cương Thô' (Skill < 60, Tiềm năng > 80)</span>, và <span class="font-bold text-bt-red">'Không Phù Hợp'</span>."
+                            </p>
+                        </div>
+
+                        <div class="p-6 rounded-lg border-l-4 border-bt-orange bg-yellow-50">
+                            <h3 class="font-oswald text-xl font-bold uppercase text-bt-orange mb-2">CẤP 3: LƯỢNG HÓA & ĐỀ XUẤT</h3>
+                            <p class="text-lg font-medium text-bt-blue-dark bg-white p-4 rounded shadow-inner">
+                                "Tạo một <span class="font-bold text-bt-green">'Danh sách ưu tiên phỏng vấn' (Shortlist)</span> gồm 3 người hàng đầu. Với mỗi người, <span class="font-bold">trích dẫn lý do</span> (bằng chứng) tại sao họ được chọn."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-bt-blue-dark text-bt-blue-light text-center p-6 mt-16 shadow-inner">
+            <p class="font-light tracking-wider">&copy; 2024 - Rosie Đào Hạnh Giang CEO Build Talents</p>
+        </footer>
+
+    </div>
+
+    <!-- JavaScript để mô phỏng AI -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const jdInput = document.getElementById('jd-input');
+            const cvInput = document.getElementById('cv-input');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const resultsOutput = document.getElementById('results-output');
+
+            // "BỘ NÃO" AI MÔ PHỎNG
+            const skillKeywords = ['phân tích dữ liệu', 'seo', 'sem', 'google analytics', 'quản lý dự án'];
+            const potentialKeywords = ['dẫn dắt', 'quản lý', 'chủ động', 'sáng tạo', 'tối ưu hóa', 'vượt chỉ tiêu'];
+
+            function extractKeywords(text, keywordList) {
+                let found = [];
+                text = text.toLowerCase();
+                keywordList.forEach(kw => {
+                    if (text.includes(kw)) {
+                        found.push(kw);
+                    }
+                });
+                return found;
+            }
+
+            function calculateScore(foundKeywords, totalKeywords) {
+                if (totalKeywords.length === 0) return 0;
+                let score = Math.round((foundKeywords.length / totalKeywords.length) * 100);
+                return Math.min(score, 100); // Giới hạn ở 100
+            }
+
+            function generateReasoning(foundSkills, foundPotential) {
+                let reasoning = "Phát hiện từ khóa: ";
+                if (foundSkills.length > 0) {
+                    reasoning += `Kỹ năng [${foundSkills.slice(0, 2).join(', ')}]. `;
+                }
+                if (foundPotential.length > 0) {
+                    reasoning += `Tiềm năng [${foundPotential.slice(0, 2).join(', ')}].`;
+                }
+                if (foundSkills.length === 0 && foundPotential.length === 0) {
+                    reasoning = "Không tìm thấy từ khóa chiến lược.";
+                }
+                return reasoning;
+            }
+
+            analyzeBtn.addEventListener('click', () => {
+                // 1. Hiển thị loading, ẩn/xóa kết quả
+                loadingSpinner.classList.remove('hidden');
+                loadingSpinner.classList.add('flex');
+                resultsOutput.classList.add('hidden');
+                resultsOutput.innerHTML = "";
+
+                // 2. Lấy dữ liệu
+                const jdText = jdInput.value.toLowerCase();
+                const cvRawText = cvInput.value;
+                
+                // 3. AI "Học" JD
+                const jdSkillKeys = extractKeywords(jdText, skillKeywords);
+                const jdPotentialKeys = extractKeywords(jdText, potentialKeywords);
+
+                // 4. Tách các CV
+                const candidates = cvRawText.split('---');
+                let results = [];
+
+                // 5. Mô phỏng AI "Suy nghĩ"
+                setTimeout(() => {
+                    
+                    // 6. AI "Chấm điểm" từng CV
+                    candidates.forEach(cv => {
+                        if (cv.trim().length < 5) return;
+                        
+                        const cvText = cv.toLowerCase();
+                        const name = cv.split('\n')[0].replace('họ tên:', '').trim();
+
+                        const foundSkills = extractKeywords(cvText, jdSkillKeys);
+                        const foundPotential = extractKeywords(cvText, potentialKeywords);
+                        
+                        const skillScore = calculateScore(foundSkills, jdSkillKeys);
+                        const potentialScore = calculateScore(foundPotential, jdPotentialKeys);
+
+                        // Trọng số: Kỹ năng 70%, Tiềm năng 30%
+                        const totalScore = Math.round((skillScore * 0.7) + (potentialScore * 0.3));
+                        
+                        const reasoning = generateReasoning(foundSkills, foundPotential);
+
+                        results.push({
+                            name: name,
+                            skillScore: skillScore,
+                            potentialScore: potentialScore,
+                            totalScore: totalScore,
+                            reasoning: reasoning
+                        });
+                    });
+
+                    // 7. Sắp xếp kết quả
+                    results.sort((a, b) => b.totalScore - a.totalScore);
+
+                    // 8. Hiển thị kết quả
+                    results.forEach(res => {
+                        let borderColor = 'border-l-bt-red'; // Mặc định
+                        if (res.totalScore > 80) {
+                            borderColor = 'border-l-bt-green'; // Ngôi sao
+                        } else if (res.totalScore > 50) {
+                            borderColor = 'border-l-bt-orange'; // Tiềm năng
+                        }
+
+                        const cardHTML = `
+                            <div class="result-card ${borderColor}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="text-xl font-bold uppercase truncate">${res.name}</h4>
+                                    <span class="text-2xl font-bold ${borderColor.replace('border-l', 'text')}">${res.totalScore}%</span>
+                                </div>
+                                <div class="font-inter text-sm space-y-1">
+                                    <p class="text-bt-green">Độ khớp Kỹ Năng: <span class="font-bold">${res.skillScore}%</span></p>
+                                    <p class="text-bt-orange">Độ khớp Tiềm Năng: <span class="font-bold">${res.potentialScore}%</span></p>
+                                    <p class="text-bt-blue-light text-xs italic mt-2">${res.reasoning}</p>
+                                </div>
+                            </div>
+                        `;
+                        resultsOutput.innerHTML += cardHTML;
+                    });
+
+                    // 9. Ẩn loading, hiện kết quả
+                    loadingSpinner.classList.add('hidden');
+                    loadingSpinner.classList.remove('flex');
+                    resultsOutput.classList.remove('hidden');
+
+                }, 2000); // Giả lập 2 giây AI suy nghĩ
+            });
+        });
+    </script>
+
+</body>
+</html>
